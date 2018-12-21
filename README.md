@@ -1,11 +1,7 @@
-epsile - an anonymous one-to-one chat
+RPRoulette - an anonymous one-to-one chat
 ====
 
-epsile got it name from epsilon, and it's an open-source clone of Omegle. It's using a node.js express+socket.io combo as server backend.
-
-Demo
----
-http://djazz.se:8001/
+RPR roulette is a chat site inspired by ShamChat, where strangers can assume the role of characters and chat with one another.
 
 Installation
 ---
@@ -37,6 +33,10 @@ In no particular order:
 * Add webcam and voice support (it will most likely not happen)
 * Better URL matching
 * Audio notification & title notification
+
+Note
+---
+RPRoulette is a fork of epsile created by daniel-j
 
 License
 ---
