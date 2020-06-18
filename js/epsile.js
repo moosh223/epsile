@@ -6,6 +6,7 @@ var Epsile = new function () {
 
 	var domID = function (id) {return document.getElementById(id);};
 	var socket;
+	var username = domID('username');
 	var welcomeScreen = domID('welcomeScreen');
 	var chatWindow = domID('chatWindow');
 	var chatMain = domID('chatMain');
@@ -56,11 +57,13 @@ var Epsile = new function () {
 			chatMainDiv.innerHTML = "";
 			logChat(0, "Waiting for a stranger..");
 			setTyping(false);
+			console.log(username.value);
+			socket.emit("name", {username: username.value});
 		});
 
-		socket.on('conn', function () { // Connected
+		socket.on('conn', function (data) { // Connected
 			chatMainDiv.innerHTML = "";
-			logChat(0, "You are now chatting with a random stranger. Say hi!");
+			logChat(0, {name: "SYS", message: "You are now chatting with " + data.test + ". Say hi!" });
 			disconnectButton.disabled = false;
 			disconnectButton.value = "Disconnect";
 			chatArea.disabled = false;
@@ -117,8 +120,8 @@ var Epsile = new function () {
 		});
 
 		socket.on('disconnect', function () {
-			logChat(0, "Connection imploded");
-			logChat(-1, "<input type=button value='Reconnect' onclick='Epsile.startChat();'>");
+			logChat(0, {message: "Connection imploded"});
+			logChat(-1, {message: "<input type=button value='Reconnect' onclick='Epsile.startChat();'>"});
 			peopleOnlineSpan.innerHTML = "0";
 			chatArea.disabled = true;
 			disconnectButton.disabled = true;
@@ -126,8 +129,8 @@ var Epsile = new function () {
 			disconnectType = false;
 		});
 		socket.on('error', function (e) {
-			logChat(0, "Connection error");
-			logChat(-1, "<input type=button value='Reconnect' onclick='Epsile.startChat();'>");
+			logChat(0, {message: "Connection error"});
+			logChat(-1, {message: "<input type=button value='Reconnect' onclick='Epsile.startChat();'>"});
 			peopleOnlineSpan.innerHTML = "0";
 			chatArea.disabled = true;
 			disconnectButton.disabled = true;
@@ -136,14 +139,15 @@ var Epsile = new function () {
 		});
 	}
 	
-	function logChat(type, message) {
+	function logChat(type, data) {
+		var {name, message} = data
 		var who = "";
 		var who2 = "";
 		var message2 = message;
 		var node = document.createElement("div");
 		if(type > 0) {
 			if(type===2) {
-				who = "<span class='strangerChat'>Stranger: <\/span>";
+				who = "<span class='strangerChat'>"+name+": <\/span>";
 				who2 = "Stranger: ";
 			}
 			else {
@@ -216,7 +220,7 @@ var Epsile = new function () {
 			chatArea.value = "";
 			chatArea.focus();
 			chatMainDiv.innerHTML = "";
-			logChat(0, "Waiting for a stranger..");
+			logChat(0, {message: "Waiting for a stranger.."});
 			setTyping(false);
 			disconnectType = false;
 			disconnectButton.value = "Disconnect";
@@ -286,7 +290,7 @@ var Epsile = new function () {
 					}
 					isTyping = false;
 					socket.emit("chat", msg);
-					logChat(1, msg);
+					logChat(1, {message: msg});
 					chatArea.value = "";
 				}
 				e.preventDefault();

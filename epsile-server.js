@@ -8,6 +8,7 @@ var port = 8001;
 
 // load and initialize modules
 var express = require('express');
+var compression = require('compression');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
@@ -16,7 +17,7 @@ server.listen(port, function () {
 	console.log('epsile server listening at port %d', port);
 });
 
-app.use(express.compress());
+app.use(compression());
 app.use(express.static(__dirname + '/'));
 
 io.set('log level', 1);
@@ -41,26 +42,29 @@ function timestamp () {
 // listen for connections
 io.sockets.on('connection', function (socket) {
 	
-	// store the socket and info about the user
-	sockets[socket.id] = socket;
-	users[socket.id] = {
-		connectedTo: -1,
-		isTyping: false
-	};
+	socket.on('name', function (data) {
+		sockets[socket.id] = socket;
+		users[socket.id] = {
+			connectedTo: -1,
+			isTyping: false,
+			username: data.username
+		};
+		// connect the user to another if strangerQueue isn't empty
+		if (strangerQueue !== false) {
+			users[socket.id].connectedTo = strangerQueue;
+			users[socket.id].isTyping = false;
+			users[strangerQueue].connectedTo = socket.id;
+			users[strangerQueue].isTyping = false;
+			socket.emit('conn',{test: users[strangerQueue].username});
+			sockets[strangerQueue].emit('conn', {test: users[socket.id].username});
+			strangerQueue = false;
+			
+		} else {
+			strangerQueue = socket.id;
+		}
+	});
 
-	// connect the user to another if strangerQueue isn't empty
-	if (strangerQueue !== false) {
-		users[socket.id].connectedTo = strangerQueue;
-		users[socket.id].isTyping = false;
-		users[strangerQueue].connectedTo = socket.id;
-		users[strangerQueue].isTyping = false;
-		socket.emit('conn');
-		sockets[strangerQueue].emit('conn');
-		strangerQueue = false;
-		
-	} else {
-		strangerQueue = socket.id;
-	}
+	
 
 	peopleActive++;
 	peopleTotal++;
@@ -75,8 +79,8 @@ io.sockets.on('connection', function (socket) {
 			users[strangerQueue].connectedTo = socket.id;
 			users[socket.id].isTyping = false;
 			users[strangerQueue].isTyping = false;
-			socket.emit('conn');
-			sockets[strangerQueue].emit('conn');
+			socket.emit('conn',{test: users[strangerQueue].username});
+			sockets[strangerQueue].emit('conn',{test: users[socket.id].username});
 			strangerQueue = false;
 		} else {
 			strangerQueue = socket.id;
@@ -104,7 +108,7 @@ io.sockets.on('connection', function (socket) {
 	});
 	socket.on('chat', function (message) {
 		if (users[socket.id].connectedTo !== -1 && sockets[users[socket.id].connectedTo]) {
-			sockets[users[socket.id].connectedTo].emit('chat', message);
+			sockets[users[socket.id].connectedTo].emit('chat', { name: users[socket.id].username, message: message });
 		}
 	});
 	socket.on('typing', function (isTyping) {

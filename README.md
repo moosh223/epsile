@@ -1,17 +1,17 @@
-epsile - an anonymous one-to-one chat
+ShamClone - an anonymous one-to-one RP chat
 ====
 
-epsile got it name from epsilon, and it's an open-source clone of Omegle. It's using a node.js express+socket.io combo as server backend.
+ShamClone is an open-source clone of Omegle. It's using a node.js express+socket.io combo as server backend.
 
 Demo
 ---
-http://djazz.se:8001/
+There is no demo live at the moment
 
 Installation
 ---
 When you have cloned this repository, install express and socket.io like so:
 ```
-$ npm install express socket.io
+$ npm install
 ```
 Then run the server:
 ```
@@ -20,11 +20,12 @@ $ node epsile-server
 
 Features
 ---
-Compared to Omegle, epsile isn't close to it in features
+Compared to ShamChat or Omegle, ShamClone isn't close to it in features
 * You can chat with another stranger. If there is no other stranger you'll have to wait.
 * If you don't have the tab focused you'll get a popup if someone sends you a message.
 * URLs in chat messages are clickable, and opens in a new tab when clicked. Don't click on links from strangers you don't trust!
 * If you start your message with "/me " you will send an action. An example is if you write "/me ate a cookie" it will look like "*** Stranger ate a cookie" for the stranger.
+* You can name yourself and have your name appear on the strangers chat log
 
 TODO
 ---
