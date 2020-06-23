@@ -10,7 +10,6 @@
 			env: "development"
 		};
 	</script>
-	<script src="main.js"></script>
 	<script src="lib/less-1.7.0.min.js"></script>
 </head>
 <body>
@@ -45,7 +44,7 @@
 				meaning that the strangers you chat with don't know anything about you (unless you describe yourself).
 			</div>
 			<br>
-			<input type="text" placeholder="Name" id="username"> 
+			<input type=text placeholder="Name" id="username"> 
 			<input type=button value="Start chatting!" class="button" id="startButton" disabled>
 		</div></section>
 		
@@ -58,14 +57,9 @@
 				<span id="sharebuttons">
 					<a href="https://twitter.com/share" class="twitter-share-button" data-text="Epsile: An Omegle clone created with HTML5" data-via="daniel_hede" data-related="omegle" data-hashtags="epsile">Tweet</a><br>
 					<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-					<div class="g-plusone"></div>
-					<script type="text/javascript">
-					  (function() {
-						var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-						po.src = 'https://apis.google.com/js/plusone.js';
-						var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-					  })();
-					</script>
+					<div class="g-plusone">
+					<script type="text/javascript" src='https://apis.google.com/js/plusone.js'> </script>
+					</div>
 				</span>
 				<a href="http://nodejs.org" target="_blank"><img src="img/nodejs-love2.png" align=top vspace=6></a>
 				&nbsp;
@@ -84,5 +78,6 @@
 	<source src="media/alert.ogg" />
 	<source src="media/alert.mp3" />
 </audio>
+<script src="main.js"></script>
 </body>
 </html>
