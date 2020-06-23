@@ -10,7 +10,8 @@
 			env: "development"
 		};
 	</script>
-	<script src="js/lib/less-1.7.0.min.js"></script>
+	<script src="main.js"></script>
+	<script src="lib/less-1.7.0.min.js"></script>
 </head>
 <body>
 
@@ -45,7 +46,7 @@
 			</div>
 			<br>
 			<input type="text" placeholder="Name" id="username"> 
-			<input type=button value="Start chatting!" onclick="Epsile.startChat();" class="button" id="startButton" disabled>
+			<input type=button value="Start chatting!" class="button" id="startButton" disabled>
 		</div></section>
 		
 		<header>
@@ -83,8 +84,5 @@
 	<source src="media/alert.ogg" />
 	<source src="media/alert.mp3" />
 </audio>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="js/epsile.js"></script>
 </body>
 </html>

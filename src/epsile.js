@@ -1,10 +1,10 @@
 // epsile
 // created by djazz
+import io from 'socket.io-client';
 
 var Epsile = new function () {
 	'use strict';
 	
-	import io from 'socket.io-client';
 
 	var domID = function (id) {return document.getElementById(id);};
 	var socket;
@@ -199,7 +199,8 @@ var Epsile = new function () {
 		}
 	}
 
-	this.startChat = function () {
+	function startChat() {
+		console.log("GETTING CALLED START")
 		if(window.webkitNotifications && notify === 0) {
 			if(window.webkitNotifications.checkPermission() === 0) {
 				notify = 2;
@@ -258,9 +259,10 @@ var Epsile = new function () {
 			document.getElementsByTagName("head")[0].appendChild(operacss);
 		}*/
 		//resizeWindow();
-		
+		console.log("Ready")
 		startButton.disabled = false;
 		startButton.focus();
+		startButton.onclick = startChat();
 		
 	}
 	setTimeout(onReady, 0);

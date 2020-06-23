@@ -18,7 +18,7 @@ server.listen(port, function () {
 });
 
 app.use(compression());
-app.use(express.static(__dirname + '/'));
+app.use(express.static(__dirname + '/dist/'));
 
 io.set('log level', 1);
 
