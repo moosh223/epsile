@@ -9,6 +9,7 @@ var port = 8001;
 // load and initialize modules
 var express = require('express');
 var compression = require('compression');
+const { match } = require('assert');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
@@ -23,128 +24,79 @@ app.use(express.static(__dirname + '/dist/'));
 io.set('log level', 1);
 
 // global variables, keeps the state of the app
-var sockets = {},
-	users = {},
-	strangerQueue = false,
-	peopleActive = 0,
-	peopleTotal = 0;
+var newQueue = []
 
 // helper functions, for logging
-function fillZero (val) {
-	if (val > 9) return ""+val;
-	return "0"+val;
-}
-function timestamp () {
-	var now = new Date();
+function fillZero (val) { return (val > 9) ? ""+val : "0"+val }
+function timestamp (now) {
 	return "["+fillZero(now.getHours())+":"+fillZero(now.getMinutes())+":"+fillZero(now.getSeconds())+"]";
 }
+function log(message) { console.log(timestamp(new Date()),message) }
 
 // listen for connections
 io.sockets.on('connection', function (socket) {
 	
+
 	socket.on('name', function (data) {
-		sockets[socket.id] = socket;
-		users[socket.id] = {
-			connectedTo: -1,
-			isTyping: false,
-			username: data.username
-		};
-		// connect the user to another if strangerQueue isn't empty
-		if (strangerQueue !== false) {
-			users[socket.id].connectedTo = strangerQueue;
-			users[socket.id].isTyping = false;
-			users[strangerQueue].connectedTo = socket.id;
-			users[strangerQueue].isTyping = false;
-			socket.emit('conn',{test: users[strangerQueue].username});
-			sockets[strangerQueue].emit('conn', {test: users[socket.id].username});
-			strangerQueue = false;
-			
+		let user = newQueue.find(o => o.socket.id === socket.id)
+		if (!user) {
+			user = {
+				socket: socket, 
+				connectedTo: -1,
+				username: data.username
+			}
+			newQueue.push(user)
+			io.sockets.emit('stats', {people: newQueue.length});
+			log(newQueue.length + " connect");
 		} else {
-			strangerQueue = socket.id;
+			user.connectedTo = -1
+		}
+		var stranger = newQueue.find(o => o.connectedTo === -1 && o.socket.id !== socket.id)
+		if (stranger) {
+			user.connectedTo = stranger.socket;
+			user.socket.emit('conn',{test: stranger.username});
+
+			stranger.connectedTo = user.socket;
+			stranger.socket.emit('conn', {test: user.username});
 		}
 	});
 
-	
-
-	peopleActive++;
-	peopleTotal++;
-	console.log(timestamp(), peopleTotal, "connect");
-	io.sockets.emit('stats', {people: peopleActive});
-
-	socket.on("new", function () {
-		
-		// Got data from someone
-		if (strangerQueue !== false) {
-			users[socket.id].connectedTo = strangerQueue;
-			users[strangerQueue].connectedTo = socket.id;
-			users[socket.id].isTyping = false;
-			users[strangerQueue].isTyping = false;
-			socket.emit('conn',{test: users[strangerQueue].username});
-			sockets[strangerQueue].emit('conn',{test: users[socket.id].username});
-			strangerQueue = false;
-		} else {
-			strangerQueue = socket.id;
-		}
-		peopleActive++;
-		io.sockets.emit('stats', {people: peopleActive});
+	socket.on('chat', function (message) {
+		var user = newQueue.find(o => o.socket.id === socket.id)
+		var stranger = newQueue.find(o => o.connectedTo.id === user.socket.id)
+		stranger.socket.emit('chat', { name: user.username, message: message })
 	});
-	
+
+	socket.on('typing', function (isTyping) {
+		let user = newQueue.find(o => o.socket.id === socket.id)
+		let stranger = newQueue.find(o => o.connectedTo.id === user.socket.id)
+		stranger.socket.emit('typing', isTyping)
+	});
+
 	// Conversation ended
 	socket.on("disconn", function () {
-		var connTo = users[socket.id].connectedTo;
-		if (strangerQueue === socket.id || strangerQueue === connTo) {
-			strangerQueue = false;
+		let user = newQueue.find(o => o.socket.id === socket.id)
+		let stranger = newQueue.find(o => o.socket.id === user.connectedTo.id)
+		user.connectedTo = 0;
+		if (stranger) {
+			stranger.connectedTo = 0;
+			stranger.socket.emit("disconn", {who: 2, name: user.username});
 		}
-		users[socket.id].connectedTo = -1;
-		users[socket.id].isTyping = false;
-		if (sockets[connTo]) {
-			users[connTo].connectedTo = -1;
-			users[connTo].isTyping = false;
-			sockets[connTo].emit("disconn", {who: 2});
-		}
-		socket.emit("disconn", {who: 1});
-		peopleActive -= 2;
-		io.sockets.emit('stats', {people: peopleActive});
-	});
-	socket.on('chat', function (message) {
-		if (users[socket.id].connectedTo !== -1 && sockets[users[socket.id].connectedTo]) {
-			sockets[users[socket.id].connectedTo].emit('chat', { name: users[socket.id].username, message: message });
-		}
-	});
-	socket.on('typing', function (isTyping) {
-		if (users[socket.id].connectedTo !== -1 && sockets[users[socket.id].connectedTo] && users[socket.id].isTyping !== isTyping) {
-			users[socket.id].isTyping = isTyping;
-			sockets[users[socket.id].connectedTo].emit('typing', isTyping);
-		}
+		user.socket.emit("disconn", {who: 1});
 	});
 
 	socket.on("disconnect", function (err) {
-		
+		let user = newQueue.find(o => o.socket.id === socket.id)
+		let stranger = newQueue.find(o => o.socket.id === user.connectedTo.id)
+		let filters = newQueue.filter(value => value.socket.id !== user.socket.id)
+		if (stranger){
+			stranger.connectedTo = 0
+			stranger.socket.emit("disconn", {who: 2, reason: err && err.toString()})
+		}
 		// Someone disconnected, ctoed or was kicked
-		//console.log(timestamp(), socket.id+" disconnected");
-
-		var connTo = (users[socket.id] && users[socket.id].connectedTo);
-		if (connTo === undefined) {
-			connTo = -1;
-		}
-		if (connTo !== -1 && sockets[connTo]) {
-			sockets[connTo].emit("disconn", {who: 2, reason: err && err.toString()});
-			users[connTo].connectedTo = -1;
-			users[connTo].isTyping = false;
-			peopleActive -= 2;
-		}
-
-		delete sockets[socket.id];
-		delete users[socket.id];
-
-		if (strangerQueue === socket.id || strangerQueue === connTo) {
-			strangerQueue = false;
-			peopleActive--;
-		}
-		peopleTotal--;
-		console.log(timestamp(), peopleTotal, "disconnect");
-		io.sockets.emit('stats', {people: peopleActive});
-		
+		newQueue = filters
+		log(newQueue.length + " disconnect");
+		io.sockets.emit('stats', {people: newQueue.length});
 	});
 });
 

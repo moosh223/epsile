@@ -47,18 +47,19 @@ function createConnection() {
 	});
 
 	chatMainDiv.innerHTML = "";
-	logChat(0, "Connecting to server...");
+	logChat(0, {message:"Connecting to server..."});
 
 	socket.on('connect', function () {
 		chatMainDiv.innerHTML = "";
-		logChat(0, "Waiting for a stranger..");
+		logChat(0, {message: "Waiting for a stranger.."});
 		setTyping(false);
 		socket.emit("name", {username: username.value});
 	});
 
 	socket.on('conn', function (data) { // Connected
 		chatMainDiv.innerHTML = "";
-		logChat(0, {name: "SYS", message: "You are now chatting with " + data.test + ". Say hi!" });
+		logChat(0, { message: "You are now chatting with " + data.test + ". Say hi!" });
+		isTypingDiv.innerText = data.test + " is typing..."
 		disconnectButton.disabled = false;
 		disconnectButton.value = "Disconnect";
 		chatArea.disabled = false;
@@ -67,20 +68,17 @@ function createConnection() {
 	});
 
 	socket.on('disconn', function (data) {
-		var who = data.who;
-		var reason = data.reason;
+		var { who, name, reason } = data;
 		chatArea.disabled = true;
-		
-		
 		
 		switch (who) {
 			case 1:
-				logChat(0, "You disconnected.");
+				logChat(0, {message:"You disconnected."});
 				break;
 			case 2:
-				logChat(0, "Stranger disconnected.");
+				logChat(0, {message: name + " disconnected."});
 				if (reason) {
-					logChat(0, "Reason: "+reason);
+					logChat(0, {message:"Reason: " + reason});
 				}
 				break;
 		}
@@ -89,7 +87,6 @@ function createConnection() {
 		setTyping(false);
 		disconnectType = true;
 		disconnectButton.disabled = false;
-		//logChat(-1, "<input type=button value='Start a new chat' onclick='Epsile.newStranger();'>");
 		disconnectButton.value = "New";
 		chatArea.disabled = true;
 		chatArea.focus();
@@ -98,9 +95,6 @@ function createConnection() {
 	socket.on('chat', function (message) {
 		logChat(2, message);
 		alertSound.currentTime = 0;
-		if (isBlurred) {
-			//alertSound.play();
-		}
 	});
 
 	socket.on('typing', function (state) {
@@ -116,16 +110,17 @@ function createConnection() {
 
 	socket.on('disconnect', function () {
 		logChat(0, {message: "Connection imploded"});
-		logChat(-1, {message: "<input type=button value='Reconnect' onclick='Epsile.startChat();'>"});
+		logChat(-1, {message: "<input type=button value='Reconnect' onclick='startChat();'>"});
 		peopleOnlineSpan.innerHTML = "0";
 		chatArea.disabled = true;
 		disconnectButton.disabled = true;
 		setTyping(false);
 		disconnectType = false;
 	});
+
 	socket.on('error', function (e) {
 		logChat(0, {message: "Connection error"});
-		logChat(-1, {message: "<input type=button value='Reconnect' onclick='Epsile.startChat();'>"});
+		logChat(-1, {message: "<input type=button value='Reconnect' onclick='startChat();'>"});
 		peopleOnlineSpan.innerHTML = "0";
 		chatArea.disabled = true;
 		disconnectButton.disabled = true;
@@ -151,7 +146,7 @@ function logChat(type, data) {
 		if(message.substr(0, 4)==='/me ') {
 			message = message.substr(4);
 			if(type===2) {
-				who = "<span class='strangerChat'>*** Stranger <\/span>";
+				who = "<span class='strangerChat'>*** "+name+" <\/span>";
 				who2 = "*** Stranger ";
 			}
 			else {
@@ -211,7 +206,7 @@ function newStranger() {
 	if(socket) {
 		chatArea.disabled = true;
 		disconnectButton.disabled = true;
-		socket.emit("new");
+		socket.emit("name", {username: username.value});
 		chatArea.value = "";
 		chatArea.focus();
 		chatMainDiv.innerHTML = "";
@@ -249,6 +244,7 @@ window.addEventListener("blur", () => {
 	isBlurred = true;
 	firstNotify = true;
 });
+
 window.addEventListener("focus", () => {
 	isBlurred = false;
 	if(lastNotify) lastNotify.cancel();
@@ -280,7 +276,7 @@ chatArea.addEventListener("keypress", (e) => {
 			return false;
 		}
 	}
-}, false);
+});
 
 chatArea.addEventListener("keyup", function (e) {
 	if (socket) {
@@ -306,7 +302,7 @@ chatArea.addEventListener("keyup", function (e) {
 			}, 10*1000);
 		}
 	}
-}, false);
+});
 
 
 
