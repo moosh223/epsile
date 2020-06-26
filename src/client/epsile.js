@@ -20,7 +20,6 @@ var typingtimer = null;
 var isTyping = false;
 var strangerTyping = false;
 var disconnectType = false;
-var peopleOnline = 0;
 var isBlurred = false;
 var notify = 0;
 var firstNotify = true;
@@ -28,7 +27,6 @@ var lastNotify = null;
 var notifyTimer = null;
 var url_pattern = /https?:\/\/([-\w\.]+)+(:\d+)?(\/([\w/_\.]*(\?\S+)?)?)?/;
 
-// mute the notification sound
 
 function setTyping(state) {
 	if(state) {
@@ -43,7 +41,7 @@ function setTyping(state) {
 function createConnection() {
 
 	// connect to the socket.io server running on same host/port
-	socket = io.connect(null, {
+	socket = io.connect("localhost:8001", {
 		reconnect: false,
 		'force new connection': true
 	});

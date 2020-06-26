@@ -7,11 +7,10 @@
 var port = 8001;
 
 // load and initialize modules
-var express = require('express');
-var compression = require('compression');
-const { match } = require('assert');
+import express from 'express';
+import compression from 'compression';
 var app = express();
-var server = require('http').createServer(app);
+var server = require('http').createServer(express);
 var io = require('socket.io').listen(server);
 
 server.listen(port, function () {
@@ -19,7 +18,6 @@ server.listen(port, function () {
 });
 
 app.use(compression());
-app.use(express.static(__dirname + '/dist/'));
 
 io.set('log level', 1);
 
