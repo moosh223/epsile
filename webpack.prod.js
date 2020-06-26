@@ -9,6 +9,7 @@ module.exports = merge(common, {
     mode: "production",
     plugins: [
         new MiniCssExtractPlugin({
+            filename: "main-[contentHash].css",
         })
     ],
     optimization: {

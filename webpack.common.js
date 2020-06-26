@@ -9,6 +9,7 @@ module.exports = {
             template: clientPath+'/template.html',
             favicon: clientPath+'/img/epsile_logo16.png',
             title: 'Epsile -- Talk to Strangers!',
+            meta: {charset: "utf-8"}
         })
     ],
     module: {
