@@ -1,18 +1,13 @@
 const path = require('path')
-var HtmlWebpackPlugin = require('html-webpack-plugin')
+const common = require('./webpack.common')
+const merge = require('webpack-merge')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 
-module.exports = {
+module.exports = merge(common, {
     mode: "production",
-    entry: "./src/client/epsile.js",
     plugins: [
-        new HtmlWebpackPlugin({
-            template: './src/client/template.html',
-            favicon: './src/client/img/epsile_logo16.png',
-            title: 'Epsile -- Talk to Strangers!',
-        }),
         new MiniCssExtractPlugin({
         })
     ],
@@ -23,7 +18,7 @@ module.exports = {
         ]
     },
     output: {
-        filename: 'main.js',
+        filename: 'main-[contentHash].js',
         path: path.resolve(__dirname, 'dist'),
     },
     module: {
@@ -37,15 +32,6 @@ module.exports = {
                 'less-loader' // compiles Less to CSS
             ]
           },
-          {
-            test: /\.html$/i,
-            loader: 'html-loader'
-          },
-          {
-            test: /\.(png|svg|jpg|gif|ogg|mp3)$/,
-            exclude: /node_modules/,
-            loader: 'file-loader',
-        },
         ],
       },
-}
+})
