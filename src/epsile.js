@@ -2,6 +2,8 @@
 // created by djazz
 import io from 'socket.io-client';
 
+require('./less/epsile.less')
+
 var domID = function (id) {return document.getElementById(id);};
 var socket;
 var username = domID('username');
