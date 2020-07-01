@@ -302,7 +302,3 @@ chatArea.addEventListener("keyup", function (e) {
 		}
 	}
 });
-
-
-
-
