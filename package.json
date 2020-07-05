@@ -2,7 +2,6 @@
   "name": "rp-roulette",
   "version": "1.0.0",
   "description": "A ShamChat clone",
-  "type": "module",
   "main": "epsile-server.js",
   "dependencies": {
     "compress": "^0.99.0",
