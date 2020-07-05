@@ -11,11 +11,7 @@ import express from 'express';
 import compression from 'compression';
 import fs from 'fs'
 var app = express();
-const httpsOptions = {
-    key: fs.readFileSync('./cert.key'),
-    cert: fs.readFileSync('./cert.pem')
-}
-var server = require('https').createServer(httpsOptions, app);
+var server = require('https').createServer(app);
 var io = require('socket.io').listen(server);
 
 server.listen(port, function () {
