@@ -10,7 +10,7 @@ var port = 8001;
 import express from 'express';
 import compression from 'compression';
 var app = express();
-var server = require('http').createServer(express);
+var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
 server.listen(port, function () {
@@ -52,10 +52,10 @@ io.sockets.on('connection', function (socket) {
 		var stranger = newQueue.find(o => o.connectedTo === -1 && o.socket.id !== socket.id)
 		if (stranger) {
 			user.connectedTo = stranger.socket;
-			user.socket.emit('conn',{test: stranger.username});
+			user.socket.emit('conn',{name: stranger.username});
 
 			stranger.connectedTo = user.socket;
-			stranger.socket.emit('conn', {test: user.username});
+			stranger.socket.emit('conn', {name: user.username});
 		}
 	});
 

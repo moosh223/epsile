@@ -5,13 +5,14 @@ import './less/epsile.less'
 
 var domID = function (id) {return document.getElementById(id);};
 var socket;
-var chatMain = domID('chatMain');
-var chatMainDiv = domID('chatMainDiv');
-var chatArea = domID('chatArea');
-var disconnectButton = domID('disconnectButton');
-var startButton = domID('startButton');
-var isTypingDiv = domID('isTypingDiv');
-var peopleOnlineSpan = domID('peopleOnlineSpan');
+let chatMain = domID('chatMain'),
+	chatMainDiv = domID('chatMainDiv'),
+	chatArea = domID('chatArea'),
+	disconnectButton = domID('disconnectButton'),
+	startButton = domID('startButton'),
+	isTypingDiv = domID('isTypingDiv'),
+	peopleOnlineSpan = domID('peopleOnlineSpan')
+
 var typingtimer = null;
 var isTyping = false;
 var strangerTyping = false;
@@ -57,10 +58,10 @@ function createConnection() {
 
 	// Function received by clients when a match has been made and chats begin
 	socket.on('conn', function (data) {
-		if (data.test === "") data.test = "a random stranger"
+		if (data.name === "") data.name = "a random stranger"
 		chatMainDiv.innerHTML = "";
-		logChat(0, { message: "You are now chatting with " + data.test + ". Say hi!" });
-		isTypingDiv.innerText = data.test + " is typing..."
+		logChat(0, { message: "You are now chatting with " + data.name + ". Say hi!" });
+		isTypingDiv.innerText = data.name + " is typing..."
 		disconnectButton.disabled = false;
 		disconnectButton.value = "Disconnect";
 		chatArea.disabled = false;
