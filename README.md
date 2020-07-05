@@ -30,12 +30,12 @@ Compared to ShamChat or Omegle, ShamClone isn't close to it in features
 TODO
 ---
 In no particular order:
-[] Add interests (see how Omegle does it)
-[] Add custom styling/other themes (light/dark for example)
-[] Add question mode (discuss a topic with other strangers)
-[] Add collaboration features, like a simple drawing surface that both strangers can draw on
-[x] Better URL matching
-[x] Audio notification & title notification
+- [] Add interests (see how Omegle does it)
+- [] Add custom styling/other themes (light/dark for example)
+- [] Add question mode (discuss a topic with other strangers)
+- [] Add collaboration features, like a simple drawing surface that both strangers can draw on
+- [x] Better URL matching
+- [x] Audio notification & title notification
 
 License
 ---
