@@ -19,7 +19,7 @@ server.listen(port, function () {
 });
 
 app.use(compression());
-app.use('/shamclone', express.static(__dirname + '/dist/'));
+app.use('/', express.static(__dirname + '/dist/'));
 
 io.set('log level', 1);
 
