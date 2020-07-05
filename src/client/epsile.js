@@ -1,5 +1,6 @@
 // epsile
 // created by djazz
+// ShamClone rewrite by Josh Mooshian (@moosh223)
 import io from 'socket.io-client';
 import './less/epsile.less'
 
@@ -182,7 +183,7 @@ function buildChatMessage(type, data){
 }
 
 // Possible new logging function that should hopefully be more robust
-function newLog(type, data) {
+function logChat(type, data) {
 	let chatMessage = buildChatMessage(type, data)
 	chatMainDiv.appendChild(chatMessage);
 	chatMain.scrollTop = chatMain.scrollHeight;
@@ -190,11 +191,6 @@ function newLog(type, data) {
 	if(isBlurred && type !== 1) {
 		doAlert(data)
 	}
-}
-
-function logChat(type, data){
-	console.log("redirecting to new log")
-	newLog(type,data)
 }
 
 function doAlert(data) {
