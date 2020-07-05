@@ -36,7 +36,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.prod.js",
-    "start": "webpack-dev-server --config webpack.dev.js --open",
+    "start": "node epsile-server.js",
     "serve": "node -r esm ./src/server/epsile-server.js"
   },
   "repository": {
