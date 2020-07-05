@@ -3,6 +3,7 @@
 // ShamClone rewrite by Josh Mooshian (@moosh223)
 import io from 'socket.io-client';
 import './less/epsile.less'
+import notificationIcon from './img/epsile_logo16.png'
 
 var domID = function (id) {return document.getElementById(id);};
 var socket;
@@ -198,7 +199,8 @@ function doAlert(data) {
 	if (name === undefined) name = "ShamClone"
 	alertSound.play();
 	new Notification(name,{
-		body:message
+		body:message,
+		icon: notificationIcon
 	})
 }
 
