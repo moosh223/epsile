@@ -4,13 +4,18 @@
 'use strict';
 
 // config
-var port = 8001;
+var port = process.env.PORT || 8001;
 
 // load and initialize modules
 import express from 'express';
 import compression from 'compression';
+import fs from 'fs'
 var app = express();
-var server = require('http').createServer(app);
+const httpsOptions = {
+    key: fs.readFileSync('./cert.key'),
+    cert: fs.readFileSync('./cert.pem')
+}
+var server = require('https').createServer(httpsOptions, app);
 var io = require('socket.io').listen(server);
 
 server.listen(port, function () {
@@ -18,6 +23,7 @@ server.listen(port, function () {
 });
 
 app.use(compression());
+app.use('/shamclone', express.static(__dirname + '/dist/'));
 
 io.set('log level', 1);
 
