@@ -57,6 +57,7 @@ function createConnection() {
 
 	// Function received by clients when a match has been made and chats begin
 	socket.on('conn', function (data) {
+		if (data.test === "") data.test = "a random stranger"
 		chatMainDiv.innerHTML = "";
 		logChat(0, { message: "You are now chatting with " + data.test + ". Say hi!" });
 		isTypingDiv.innerText = data.test + " is typing..."
@@ -70,6 +71,7 @@ function createConnection() {
 	// Function received by clients when the person they are talking to has voluntarily disconnected 
 	socket.on('disconn', function (data) {
 		var { who, name, reason } = data;
+		if (name === "") name = "Stranger"
 		chatArea.disabled = true;
 		
 		switch (who) {
@@ -95,6 +97,7 @@ function createConnection() {
 
 	// Function received when a chat is received from other client
 	socket.on('chat', function (message) {
+		if (message.name === "") message.name = "Stranger"
 		logChat(2, message);
 		alertSound.currentTime = 0;
 	});
@@ -158,20 +161,19 @@ function buildChatMessage(type, data){
 		senderNode = document.createElement("span"),
 		messageNode = document.createElement("span"),
 		messageAction = isMeAction(message)
+	//if (name === "") name = "Stranger"
 	if (type === 2) {
 		senderNode.className = "strangerChat"
-		if (messageAction) senderNode.innerHTML = "***"+name+" "
-		else senderNode.innerHTML = name+": "
 	} else if (type === 1){
 		 senderNode.className = "youChat"
-		 if (messageAction) senderNode.innerHTML = "***You "
-		 else senderNode.innerHTML = "You: "
 	} else {
 		senderNode.className = "consoleChat"
 		senderNode.innerHTML = doMessageParsing(message)
 		chatNode.appendChild(senderNode)
 		return chatNode
 	}
+	if (messageAction) senderNode.innerHTML = "***"+name+" "
+	else senderNode.innerHTML = name+": "
 	messageNode.innerHTML = doMessageParsing(message)
 	chatNode.appendChild(senderNode)
 	chatNode.appendChild(messageNode)
@@ -185,7 +187,7 @@ function newLog(type, data) {
 	chatMain.scrollTop = chatMain.scrollHeight;
 	chatMain.scrollLeft = 0;
 	if(isBlurred && type !== 1) {
-		doAlert()
+		doAlert(data)
 	}
 }
 
@@ -194,8 +196,13 @@ function logChat(type, data){
 	newLog(type,data)
 }
 
-function doAlert() {
+function doAlert(data) {
+	let { name, message } = data
+	if (name === undefined) name = "ShamClone"
 	alertSound.play();
+	new Notification(name,{
+		body:message
+	})
 }
 
 // Hides the start screen, shows the chat screen, and begins server connection
@@ -289,7 +296,7 @@ chatArea.addEventListener("keypress", (e) => {
 			}
 			isTyping = false;
 			socket.emit("chat", msg);
-			logChat(1, {message: msg});
+			logChat(1, {name: "You", message: msg});
 			chatArea.value = "";
 		}
 		e.preventDefault();
