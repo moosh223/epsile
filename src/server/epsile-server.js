@@ -11,12 +11,11 @@ import express from 'express';
 import compression from 'compression';
 import fs from 'fs'
 var app = express();
-var server = require('https').createServer(app);
-var io = require('socket.io').listen(server);
-
-server.listen(port, function () {
+let server = app.listen(port, function () {
 	console.log('epsile server listening at port %d', port);
 });
+var io = require('socket.io').listen(server);
+
 
 app.use(compression());
 app.use('/', express.static(__dirname + '/dist/'));
