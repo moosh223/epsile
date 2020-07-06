@@ -35,8 +35,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --config webpack.prod.js",
-    "start": "node -r esm ./src/server/epsile-server.js"
+    "build": "webpack --config webpack.prod.js && babel ./src/server/epsile-server.js -d .",
+    "start": "node -r esm ./epsile-server.js"
   },
   "repository": {
     "type": "git",

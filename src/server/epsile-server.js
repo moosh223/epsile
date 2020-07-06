@@ -11,15 +11,16 @@ import express from 'express';
 import compression from 'compression';
 import fs from 'fs'
 var app = express();
-let server = app.listen(port, function () {
-	console.log('epsile server listening at port %d', port);
-});
-var io = require('socket.io').listen(server);
 
 
 app.use(compression());
-app.use('/', express.static(__dirname + '/dist/'));
+app.use(express.static(__dirname + '/dist/'));
 
+let server = app.listen(port, function () {
+	console.log('epsile server listening at port %d', port);
+});
+
+var io = require('socket.io').listen(server);
 io.set('log level', 1);
 
 // global variables, keeps the state of the app

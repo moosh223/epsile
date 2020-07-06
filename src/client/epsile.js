@@ -44,7 +44,7 @@ function setTyping(state) {
  */
 function createConnection() {
 	// connect to the socket.io server running on same host/port
-	socket = io.connect("https://68.51.23.140:8001", {
+	socket = io.connect(null, {
 		reconnect: false,
 		'force new connection': true
 	});
