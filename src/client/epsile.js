@@ -1,20 +1,20 @@
 // epsile
 // created by djazz
+// ShamClone rewrite by Josh Mooshian (@moosh223)
 import io from 'socket.io-client';
 import './less/epsile.less'
+import notificationIcon from './img/epsile_logo16.png'
 
 var domID = function (id) {return document.getElementById(id);};
 var socket;
-var username = domID('username');
-var welcomeScreen = domID('welcomeScreen');
-var chatWindow = domID('chatWindow');
-var chatMain = domID('chatMain');
-var chatMainDiv = domID('chatMainDiv');
-var chatArea = domID('chatArea');
-var disconnectButton = domID('disconnectButton');
-var startButton = domID('startButton');
-var isTypingDiv = domID('isTypingDiv');
-var peopleOnlineSpan = domID('peopleOnlineSpan');
+let chatMain = domID('chatMain'),
+	chatMainDiv = domID('chatMainDiv'),
+	chatArea = domID('chatArea'),
+	disconnectButton = domID('disconnectButton'),
+	startButton = domID('startButton'),
+	isTypingDiv = domID('isTypingDiv'),
+	peopleOnlineSpan = domID('peopleOnlineSpan')
+
 var typingtimer = null;
 var isTyping = false;
 var strangerTyping = false;
@@ -24,7 +24,8 @@ var notify = 0;
 var firstNotify = true;
 var lastNotify = null;
 var notifyTimer = null;
-var url_pattern = /https?:\/\/([-\w\.]+)+(:\d+)?(\/([\w/_\.]*(\?\S+)?)?)?/;
+var url_pattern = new RegExp("([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?")
+
 
 
 function setTyping(state) {
@@ -37,10 +38,13 @@ function setTyping(state) {
 	strangerTyping = state;
 }
 
-function createConnection() {
 
+/*
+ * SOCKET ENTRY POINT
+ */
+function createConnection() {
 	// connect to the socket.io server running on same host/port
-	socket = io.connect("localhost:8001", {
+	socket = io.connect(null, {
 		reconnect: false,
 		'force new connection': true
 	});
@@ -48,17 +52,18 @@ function createConnection() {
 	chatMainDiv.innerHTML = "";
 	logChat(0, {message:"Connecting to server..."});
 
+	// Socket.io builtin function that fires 
+	// when a connection to the server is started
 	socket.on('connect', function () {
-		chatMainDiv.innerHTML = "";
-		logChat(0, {message: "Waiting for a stranger.."});
-		setTyping(false);
-		socket.emit("name", {username: username.value});
+		newStranger()
 	});
 
-	socket.on('conn', function (data) { // Connected
+	// Function received by clients when a match has been made and chats begin
+	socket.on('conn', function (data) {
+		if (data.name === "") data.name = "a random stranger"
 		chatMainDiv.innerHTML = "";
-		logChat(0, { message: "You are now chatting with " + data.test + ". Say hi!" });
-		isTypingDiv.innerText = data.test + " is typing..."
+		logChat(0, { message: "You are now chatting with " + data.name + ". Say hi!" });
+		isTypingDiv.innerText = data.name + " is typing..."
 		disconnectButton.disabled = false;
 		disconnectButton.value = "Disconnect";
 		chatArea.disabled = false;
@@ -66,8 +71,10 @@ function createConnection() {
 		chatArea.focus();
 	});
 
+	// Function received by clients when the person they are talking to has voluntarily disconnected 
 	socket.on('disconn', function (data) {
 		var { who, name, reason } = data;
+		if (name === "") name = "Stranger"
 		chatArea.disabled = true;
 		
 		switch (who) {
@@ -91,15 +98,19 @@ function createConnection() {
 		chatArea.focus();
 	});
 
+	// Function received when a chat is received from other client
 	socket.on('chat', function (message) {
+		if (message.name === "") message.name = "Stranger"
 		logChat(2, message);
 		alertSound.currentTime = 0;
 	});
 
+	// Function received when other client is typing
 	socket.on('typing', function (state) {
 		setTyping(state);
 	});
 
+	// Function received when stat numbers are updated	
 	socket.on('stats', function (stats) {
 		if (stats.people !== undefined) {
 			peopleOnlineSpan.innerHTML = stats.people;
@@ -107,6 +118,9 @@ function createConnection() {
 		
 	});
 
+	
+	// Socket.io builtin function that fires 
+	// when a connection to the server is terminated
 	socket.on('disconnect', function () {
 		logChat(0, {message: "Connection imploded"});
 		logChat(-1, {message: "<input type=button value='Reconnect' onclick='startChat();'>"});
@@ -117,6 +131,9 @@ function createConnection() {
 		disconnectType = false;
 	});
 
+	
+	// Socket.io builtin function that fires 
+	// when a connection to the server has an error
 	socket.on('error', function (e) {
 		logChat(0, {message: "Connection error"});
 		logChat(-1, {message: "<input type=button value='Reconnect' onclick='startChat();'>"});
@@ -126,66 +143,68 @@ function createConnection() {
 		setTyping(false);
 		disconnectType = false;
 	});
+}		
+
+function isMeAction(message) { return (message.substr(0, 4)==='/me ') }
+
+function doMessageParsing(message){
+	let newMessage = message
+	return newMessage
+		.replace(/\</g, "&lt;")
+		.replace(/\>/g, "&gt;")
+		.replace(url_pattern, function(match){
+			return "<a href="+match.replace(/\n/g, "")+ " target=\"_blank\">"+match.replace(/\n/g, "<br>")+"</a>"
+		})
+		.replace('/me ', '')
 }
 
+function buildChatMessage(type, data){
+	let {name, message} = data,
+		chatNode = document.createElement("div"),
+		senderNode = document.createElement("span"),
+		messageNode = document.createElement("span"),
+		messageAction = isMeAction(message)
+	//if (name === "") name = "Stranger"
+	if (type === 2) {
+		senderNode.className = "strangerChat"
+	} else if (type === 1){
+		 senderNode.className = "youChat"
+	} else {
+		senderNode.className = "consoleChat"
+		senderNode.innerHTML = doMessageParsing(message)
+		chatNode.appendChild(senderNode)
+		return chatNode
+	}
+	if (messageAction) senderNode.innerHTML = "***"+name+" "
+	else senderNode.innerHTML = name+": "
+	messageNode.innerHTML = doMessageParsing(message)
+	chatNode.appendChild(senderNode)
+	chatNode.appendChild(messageNode)
+	return chatNode
+}
+
+// Possible new logging function that should hopefully be more robust
 function logChat(type, data) {
-	var {name, message} = data
-	var who = "";
-	var who2 = "";
-	var message2 = message;
-	var node = document.createElement("div");
-	if(type > 0) {
-		if(type===2) {
-			who = "<span class='strangerChat'>"+name+": <\/span>";
-			who2 = "Stranger: ";
-		}
-		else {
-			who = "<span class='youChat'>You: <\/span>";
-		}
-		if(message.substr(0, 4)==='/me ') {
-			message = message.substr(4);
-			if(type===2) {
-				who = "<span class='strangerChat'>*** "+name+" <\/span>";
-				who2 = "*** Stranger ";
-			}
-			else {
-				who = "<span class='youChat'>*** You <\/span>";
-			}
-		}
-		message = message.replace(/\</g, "&lt;").replace(/\>/g, "&gt;");
-		var msg = message.split(" ");
-		for(var i=0; i < msg.length; i+=1) {
-			if(url_pattern.test(msg[i]) && msg[i].indexOf("\"") === -1) {
-				msg[i] = "<a href=\""+msg[i].replace(/\n/g, "")+"\" target=\"_blank\">"+msg[i].replace(/\n/g, "<br>")+"</a>";
-			}
-			else {
-				msg[i] = msg[i].replace(/\n/g, "<br>");
-			}
-		}
-		message = msg.join(" ");
-		node.innerHTML = who + message;
-	}
-	else {
-		node.innerHTML = "<span class='consoleChat'>"+message+"<\/span>";
-	}
-	chatMainDiv.appendChild(node);
+	let chatMessage = buildChatMessage(type, data)
+	chatMainDiv.appendChild(chatMessage);
 	chatMain.scrollTop = chatMain.scrollHeight;
 	chatMain.scrollLeft = 0;
-	if(isBlurred && (type === 0 || type === 2)) {
-		alertSound.play();
-		if(firstNotify && notify > 0 && window.webkitNotifications.checkPermission() === 0) {
-			clearTimeout(notifyTimer);
-			if(lastNotify) lastNotify.cancel();
-			lastNotify = window.webkitNotifications.createNotification('img/epsile_logo32.png', 'Epsile'+(type===0?' Message':''), who2+message2);
-			lastNotify.show();
-			firstNotify = false;
-			notifyTimer = setTimeout(function () {
-				lastNotify.cancel();
-			}, 7*1000);
-		}
+	if(isBlurred && type !== 1) {
+		doAlert(data)
 	}
 }
 
+function doAlert(data) {
+	let { name, message } = data
+	if (name === undefined) name = "ShamClone"
+	alertSound.play();
+	new Notification(name,{
+		body:message,
+		icon: notificationIcon
+	})
+}
+
+// Hides the start screen, shows the chat screen, and begins server connection
 function startChat() {
 	if(window.webkitNotifications && notify === 0) {
 		if(window.webkitNotifications.checkPermission() === 0) {
@@ -195,17 +214,20 @@ function startChat() {
 			window.webkitNotifications.requestPermission();
 			notify = 1;
 		}
+	} else if(Notification.permission !== 'granted'){
+		Notification.requestPermission()
 	}
-	welcomeScreen.style.display = 'none';
-	chatWindow.style.display = 'block';
+	domID('welcomeScreen').style.display = 'none';
+	domID('chatWindow').style.display = 'block';
 	createConnection();
 };
 
+// For when you already connected to server but need new people
 function newStranger() {
 	if(socket) {
 		chatArea.disabled = true;
 		disconnectButton.disabled = true;
-		socket.emit("name", {username: username.value});
+		socket.emit("name", {username: domID('username').value});
 		chatArea.value = "";
 		chatArea.focus();
 		chatMainDiv.innerHTML = "";
@@ -216,6 +238,7 @@ function newStranger() {
 	}
 };
 
+// For when you don't wanna talk to them no more
 function doDisconnect() {
 	if(disconnectType===true) {
 		disconnectType = false;
@@ -232,51 +255,56 @@ function doDisconnect() {
 	}
 };
 
-
+// Is JS loaded?
 function onReady() {
 	startButton.disabled = false;
 	startButton.focus();
 }
+
+
 setTimeout(onReady, 0);
 
+// For blurred screen (I believe is WIP for notifications)
 window.addEventListener("blur", () => {
 	isBlurred = true;
 	firstNotify = true;
 });
 
+// For screen back in focus (I believe is WIP for notifications)
 window.addEventListener("focus", () => {
 	isBlurred = false;
 	if(lastNotify) lastNotify.cancel();
 	if(notifyTimer) clearTimeout(notifyTimer);
 });
 
+// Attach listeners to buttons
 disconnectButton.addEventListener('click', doDisconnect);
 startButton.addEventListener('click', startChat);
 
+// Listener for isTyping functionality
 chatArea.addEventListener("keypress", (e) => {
-	var kc = e.keyCode;
-	if(kc === 13) {
-		if(!e.shiftKey) {
-			var msg = chatArea.value;
-			if(msg.length > 0) {
-				if(typingtimer!==null) {
-					clearTimeout(typingtimer);
-				}
-				if(isTyping) {
-					socket.emit("typing", false); // Not typing
-				}
-				isTyping = false;
-				socket.emit("chat", msg);
-				logChat(1, {message: msg});
-				chatArea.value = "";
+	let kc = e.keyCode;
+	if(kc === 13 && !e.shiftKey) {
+		let msg = chatArea.value;
+		if(msg.length > 0) {
+			if(typingtimer!==null) {
+				clearTimeout(typingtimer);
 			}
-			e.preventDefault();
-			e.returnValue = false;
-			return false;
+			if(isTyping) {
+				socket.emit("typing", false); // Not typing
+			}
+			isTyping = false;
+			socket.emit("chat", msg);
+			logChat(1, {name: "You", message: msg});
+			chatArea.value = "";
 		}
+		e.preventDefault();
+		e.returnValue = false;
+		return false;
 	}
 });
 
+// Also listener for isTyping functionality
 chatArea.addEventListener("keyup", function (e) {
 	if (socket) {
 		if (typingtimer!==null) {

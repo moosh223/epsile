@@ -4,21 +4,23 @@
 'use strict';
 
 // config
-var port = 8001;
+var port = process.env.PORT || 8001;
 
 // load and initialize modules
 import express from 'express';
 import compression from 'compression';
+import fs from 'fs'
 var app = express();
-var server = require('http').createServer(express);
-var io = require('socket.io').listen(server);
 
-server.listen(port, function () {
+
+app.use(compression());
+app.use(express.static(__dirname + '/dist/'));
+
+let server = app.listen(port, function () {
 	console.log('epsile server listening at port %d', port);
 });
 
-app.use(compression());
-
+var io = require('socket.io').listen(server);
 io.set('log level', 1);
 
 // global variables, keeps the state of the app
@@ -52,10 +54,10 @@ io.sockets.on('connection', function (socket) {
 		var stranger = newQueue.find(o => o.connectedTo === -1 && o.socket.id !== socket.id)
 		if (stranger) {
 			user.connectedTo = stranger.socket;
-			user.socket.emit('conn',{test: stranger.username});
+			user.socket.emit('conn',{name: stranger.username});
 
 			stranger.connectedTo = user.socket;
-			stranger.socket.emit('conn', {test: user.username});
+			stranger.socket.emit('conn', {name: user.username});
 		}
 	});
 
